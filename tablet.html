@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sermão Digital - Tablet</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+        }
+
+        header {
+            background: #1a237e;
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header button {
+            background: #d4af37;
+            border: none;
+            padding: 8px 16px;
+            margin-left: 8px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        main {
+            padding: 16px;
+        }
+
+        section {
+            background: white;
+            padding: 24px;
+            margin-bottom: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            border-left: 3px solid #1a237e;
+            padding-left: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 16px;
+        }
+
+        .controls input[type="range"] {
+            width: 100%;
+        }
+
+        .slide-list {
+            max-height: 300px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .slide-card {
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slide-card button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        footer {
+            background: #e8f4f8;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        footer button {
+            background: #1a237e;
+            color: white;
+            border: none;
+            padding: 16px 0;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .small-btn {
+            background: #d4af37;
+            color: white;
+            padding: 12px 0;
+            font-size: 16px;
+        }
+
+        .notification {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffd700;
+            color: black;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .verse {
+            font-style: italic;
+            color: #d4af37;
+        }
+
+        .verse-reference {
+            font-weight: bold;
+            color: #1a237e;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Sermão Digital - Tablet</h1>
+    <div>
+        <button onclick="saveSermon()">Salvar Sermão</button>
+        <button onclick="loadSermon()">Carregar Sermão</button>
+        <button onclick="saveSlides()">Salvar Slides</button>
+        <button onclick="loadSlides()">Carregar Slides</button>
+        <button onclick="openBible()">Bíblia</button>
+        <button onclick="sendToProjection()">Enviar</button>
+        <button onclick="startPresentation()">Iniciar</button>
+    </div>
+</header>
+
+<main>
+    <section>
+        <div class="section-title">CRIAR SERMÃO</div>
+        <textarea id="sermonText" placeholder="Digite seu sermão completo aqui..."></textarea>
+        <div id="slideCount" style="margin-top: 12px; font-size: 16px; color: #666;">Slides: 0</div>
+    </section>
+
+    <section>
+        <div class="section-title">PERSONALIZAR</div>
+        <div class="controls">
+            <div>
+                <label>Tamanho Fonte: <span id="fontSizeValue">32pt</span></label>
+                <input type="range" id="fontSize" min="12" max="72" value="32" oninput="updateFontSize()">
+            </div>
+            <div>
+                <label>Cor Fonte: <span id="fontColorDisplay" style="width: 20px; height: 20px; border-radius: 50%; display: inline-block;"></span></label>
+                <input type="color" id="fontColor" value="#1a237e" oninput="updateFontColor()">
+            </div>
+            <div>
+                <label>Imagem Fundo: </label>
+                <input type="file" id="bgImage" accept="image/*" onchange="updateBackground()">
+            </div>
+            <div>
+                <label>Tema: </label>
+                <select id="theme" onchange="updateTheme()">
+                    <option value="light">Claro</option>
+                    <option value="dark">Escuro</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title">BÍBLIA</div>
+        <div class="controls">
+            <div>
+                <label>Busca: </label>
+                <input type="text" id="bibleSearch" placeholder="Buscar versículo">
+                <button onclick="searchBible()">Buscar</button>
+            </div>
+            <div id="bibleResults" style="margin-top: 12px;"></div>
+            <div style="margin-top: 16px;">
+                <button onclick="sendBibleVerse()">Enviar Versículo para Projeção</button>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title">SLIDES</div>
+        <div id="slidesList" class="slide-list"></div>
+        <div style="margin-top: 16px;">
+            <button onclick="generateSlides()">Gerar Slides</button>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <button onclick="sendToProjection()">ENVIAR PARA PROJEÇÃO</button>
+    <button onclick="startPresentation()">INICIAR PRESENTAÇÃO</button>
+    <button class="small-btn" onclick="save()">SALVAR</button>
+</footer>
+
+<script>
+    let slides = [];
+    let currentSlide = 0;
+    let presentationActive = false;
+    let projectionSocket;
+
+    function updateSlideCount() {
+        document.getElementById('slideCount').innerText = 'Slides: ' + slides.length;
+    }
+
+    function updateFontSize() {
+        const value = document.getElementById('fontSize').value + 'pt';
+        document.getElementById('fontSizeValue').innerText = value;
+    }
+
+    function updateFontColor() {
+        const color = document.getElementById('fontColor').value;
+        document.getElementById('fontColorDisplay').style.backgroundColor = color;
+    }
+
+    function updateBackground() {
+        const file = document.getElementById('bgImage').files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const slides = document.querySelectorAll('.slide-card');
+                slides.forEach(slide => {
+                    slide.style.backgroundImage = 'url(' + e.target.result + ')';
+                    slide.style.backgroundSize = 'cover';
+                    slide.style.backgroundPosition = 'center';
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function updateTheme() {
+        const theme = document.getElementById('theme').value;
+        document.body.className = theme;
+    }
+
+    function generateSlides() {
+        const text = document.getElementById('sermonText').value;
+        if (!text.trim()) return;
+
+        slides = text.split('\n\n').filter(para => para.trim()).map((para, index) => ({
+            id: index + 1,
+            content: para.trim(),
+            color: document.getElementById('fontColor').value,
+            size: document.getElementById('fontSize').value + 'pt',
+            bg: document.getElementById('bgImage').files.length > 0 ? URL.createObjectURL(document.getElementById('bgImage').files[0]) : null
+        }));
+
+        updateSlideCount();
+        renderSlides();
+    }
+
+    function renderSlides() {
+        const list = document.getElementById('slidesList');
+        list.innerHTML = '';
+        slides.forEach(slide => {
+            const card = document.createElement('div');
+            card.className = 'slide-card';
+            if (slide.bg) {
+                card.style.backgroundImage = 'url(' + slide.bg + ')';
+                card.style.backgroundSize = 'cover';
+                card.style.backgroundPosition = 'center';
+            }
+            card.innerHTML = `
+                <div>${slide.content.substring(0, 50)}...</div>
+                <div>
+                    <button onclick="editSlide(${slide.id})">📝</button>
+                    <button onclick="deleteSlide(${slide.id})">❌</button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function editSlide(id) {
+        const newContent = prompt('Edita o slide', slides[id-1].content);
+        if (newContent !== null) {
+            slides[id-1].content = newContent;
+            renderSlides();
+        }
+    }
+
+    function deleteSlide(id) {
+        if (confirm('Deletar este slide?')) {
+            slides.splice(id-1, 1);
+            updateSlideCount();
+            renderSlides();
+        }
+    }
+
+    function saveSermon() {
+        const text = document.getElementById('sermonText').value;
+        const timestamp = new Date().toISOString();
+        const key = 'sermon_' + timestamp;
+        localStorage.setItem(key, text);
+        alert('Sermão salvo com sucesso!');
+    }
+
+    function loadSermon() {
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('sermon_'));
+        if (keys.length === 0) {
+            alert('Nenhum sermão salvo anteriormente');
+            return;
+        }
+
+        let html = '<div style="max-height: 300px; overflow-y: auto;">';
+        keys.forEach(key => {
+            const text = localStorage.getItem(key);
+            html += `<div style="padding: 12px; border-bottom: 1px solid #ccc; cursor: pointer;" onclick="loadSermonContent('${key}')">${key} - ${text.substring(0, 40)}...</div>`;
+        });
+        html += '</div>';
+        alert(html);
+    }
+
+    function loadSermonContent(key) {
+        document.getElementById('sermonText').value = localStorage.getItem(key);
+        alert('Sermão carregado!');
+    }
+
+    function saveSlides() {
+        const blob = new Blob([JSON.stringify(slides)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'slides.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('Slides salvos!');
+    }
+
+    function loadSlides() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    slides = JSON.parse(e.target.result);
+                    updateSlideCount();
+                    renderSlides();
+                    alert('Slides carregados!');
+                };
+                reader.readAsText(file);
+            }
+        };
+        input.click();
+    }
+
+    function searchBible() {
+        const query = document.getElementById('bibleSearch').value;
+        if (!query) return;
+
+        const results = document.getElementById('bibleResults');
+        results.innerHTML = '<div style="text-align: center; margin: 16px;">Buscando...</div>';
+
+        fetch('https://bible-api.com/search.json?q=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                results.innerHTML = '';
+                if (data.verses.length === 0) {
+                    results.innerHTML = '<div style="text-align: center; color: #999;">Nenhum versículo encontrado</div>';
+                    return;
+                }
+
+                data.verses.forEach(verse => {
+                    const div = document.createElement('div');
+                    div.className = 'verse';
+                    div.innerHTML = `
+                        <strong style="color: #1a237e;">${verse.book_name} ${verse.chapter}:${verse.verse}</strong>
+                        <p>${verse.text}</p>
+                        <button onclick="selectBibleVerse('${verse.book_name} ${verse.chapter}:${verse.verse}', '${verse.text}')">Selecionar</button>
+                    `;
+                    results.appendChild(div);
+                });
+            })
+            .catch(err => {
+                results.innerHTML = '<div style="text-align: center; color: red;">Erro ao buscar</div>';
+            });
+    }
+
+    function selectBibleVerse(reference, text) {
+        const slide = {
+            id: slides.length + 1,
+            content: `<div class="verse">${text}</div><div class="verse-reference">${reference}</div>`,
+            color: document.getElementById('fontColor').value,
+            size: document.getElementById('fontSize').value + 'pt',
+            bg: document.getElementById('bgImage').files.length > 0 ? URL.createObjectURL(document.getElementById('bgImage').files[0]) : null
+        };
+        slides.push(slide);
+        updateSlideCount();
+        renderSlides();
+    }
+
+    function sendBibleVerse() {
+        const results = document.getElementById('bibleResults');
+        const verse = results.querySelector('.verse');
+        if (!verse) {
+            alert('Nenhum versículo selecionado');
+            return;
+        }
+
+        const reference = verse.querySelector('strong').innerText;
+        const text = verse.querySelector('p').innerText;
+        const slide = `<div class="verse">${text}</div><div class="verse-reference">${reference}</div>`;
+        sendToProjection(slide);
+    }
+
+    function sendToProjection(content) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.innerText = 'Slide enviado para projeção';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+
+        const data = {
+            type: 'SLIDE',
+            content: content,
+            color: document.getElementById('fontColor').value,
+            size: document.getElementById('fontSize').value + 'pt',
+            bg: document.getElementById('bgImage').files.length > 0 ? URL.createObjectURL(document.getElementById('bgImage').files[0]) : null
+        };
+
+        if (window.location.hostname === 'localhost') {
+            if (!projectionSocket) {
+                projectionSocket = new WebSocket('ws://localhost:8080');
+                projectionSocket.onopen = () => console.log('Conectado ao servidor');
+            }
+            projectionSocket.send(JSON.stringify(data));
+        } else {
+            alert('Modo offline - Slides não podem ser enviados');
+        }
+    }
+
+    function startPresentation() {
+        presentationActive = true;
+        currentSlide = 0;
+        showSlide(currentSlide);
+        document.getElementById('sermonText').disabled = true;
+    }
+
+    function showSlide(index) {
+        if (index < 0 || index >= slides.length) return;
+
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.innerText = `Slide ${index + 1} de ${slides.length}`;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+
+        if (window.location.hostname === 'localhost') {
+            if (!projectionSocket) {
+                projectionSocket = new WebSocket('ws://localhost:8080');
+                projectionSocket.onopen = () => console.log('Conectado ao servidor');
+            }
+            projectionSocket.send(JSON.stringify({
+                type: 'PRESENTATION_START',
+                slide: slides[index]
+            }));
+        } else {
+            alert('Modo offline - Apresentação não pode ser iniciada');
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (presentationActive) {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === ' ') togglePlay();
+        }
+    });
+
+    function nextSlide() {
+        currentSlide++;
+        if (currentSlide >= slides.length) currentSlide = 0;
+        showSlide(currentSlide);
+    }
+
+    function prevSlide() {
+        currentSlide--;
+        if (currentSlide < 0) currentSlide = slides.length - 1;
+        showSlide(currentSlide);
+    }
+
+    function togglePlay() {
+        presentationActive = !presentationActive;
+        document.getElementById('sermonText').disabled = !presentationActive;
+        if (presentationActive) {
+            nextSlide();
+        }
+    }
+
+    function save() {
+        const data = {
+            sermon: document.getElementById('sermonText').value,
+            slides: slides,
+            settings: {
+                fontSize: document.getElementById('fontSize').value,
+                fontColor: document.getElementById('fontColor').value,
+                bgImage: document.getElementById('bgImage').files.length > 0 ? URL.createObjectURL(document.getElementById('bgImage').files[0]) : null,
+                theme: document.getElementById('theme').value
+            }
+        };
+
+        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sermão_completo.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('Tudo salvo!');
+    }
+
+    updateFontColor();
+    updateTheme();
+</script>
+</body>
+</html>

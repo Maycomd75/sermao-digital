@@ -1,0 +1,13 @@
+{
+  "name": "sermao-digital",
+  "version": "1.0.0",
+  "description": "Sistema completo de apresentacao de sermao para igreja com comunicacao WebSocket entre tablet e projetor",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.18.0"
+  }
+}

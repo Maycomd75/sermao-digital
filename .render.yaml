@@ -1,0 +1,14 @@
+# .render.yaml
+version: 2
+services:
+  - type: web
+    name: sermao-digital
+    env: node
+    port: 8080
+    buildCommand: npm install
+    startCommand: node server.js
+    source: .
+    httpPort: 8080
+    git:
+      repo: https://github.com/maycomd75/sermao-digital.git
+      branch: main

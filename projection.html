@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sermão Digital - Projeção</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+        }
+
+        header {
+            background: #1a237e;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        header button {
+            background: #d4af37;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 8px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .notification {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffd700;
+            color: black;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        main {
+            background: #e8f4f8;
+            padding: 64px;
+            text-align: center;
+        }
+
+        main h2 {
+            font-size: 64px;
+            font-weight: bold;
+            line-height: 1.8;
+            color: #1a237e;
+        }
+
+        main .verse {
+            font-size: 56px;
+            font-style: italic;
+            color: #d4af37;
+            margin: 24px 0;
+        }
+
+        main .verse-reference {
+            font-weight: bold;
+            color: #1a237e;
+            margin-top: 12px;
+        }
+
+        main .slide-number {
+            font-size: 32px;
+            color: #999;
+            margin-top: 48px;
+        }
+
+        footer {
+            background: #e8f4f8;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        footer button {
+            background: #1a237e;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        footer button:hover {
+            background: #0d164e;
+        }
+
+        .small-btn {
+            background: #d4af37;
+            color: white;
+            padding: 12px 16px;
+            font-size: 16px;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>SERMÃO DIGITAL - PROJEÇÃO</h1>
+    <div>
+        <button onclick="pausePresentation()">Pausar</button>
+        <button onclick="continuePresentation()">Continuar</button>
+        <button onclick="goToStart()">Ir para Início</button>
+    </div>
+</header>
+
+<div id="notification" class="notification" style="display: none;"></div>
+
+<main>
+    <div id="slideContent" style="max-width: 1200px;"></div>
+    <div id="slideNumber" class="slide-number"></div>
+</main>
+
+<footer>
+    <div style="display: flex;">
+        <button onclick="prevSlide()">Anterior</button>
+        <button onclick="nextSlide()">Próximo</button>
+        <button onclick="goToSlide()">Ir para</button>
+    </div>
+    <div id="slideCounter"></div>
+    <div style="display: flex;">
+        <span id="themeIndicator"></span>
+        <button class="small-btn" onclick="loadPresentation()">Carregar</button>
+        <button class="small-btn" onclick="savePresentation()">Salvar</button>
+    </div>
+</footer>
+
+<script>
+    let currentPresentation = false;
+    let currentSlide = 0;
+    let presentations = [];
+
+    document.getElementById('themeIndicator').innerText = 'Tema: Claro';
+
+    const slideContent = document.getElementById('slideContent');
+    const slideNumber = document.getElementById('slideNumber');
+    const slideCounter = document.getElementById('slideCounter');
+
+    function updateDisplay(slide) {
+        slideContent.innerHTML = '';
+        slideNumber.innerText = '';
+        slideCounter.innerText = 'Slide 001 de 000';
+
+        if (slide) {
+            slideContent.innerHTML = slide.content;
+            if (slide.bg) {
+                slideContent.style.backgroundImage = 'url(' + slide.bg + ')';
+                slideContent.style.backgroundSize = 'cover';
+                slideContent.style.backgroundPosition = 'center';
+                slideContent.style.padding = '80px';
+            } else {
+                slideContent.style.background = 'transparent';
+                slideContent.style.padding = '40px';
+            }
+            slideNumber.innerText = 'Slide ' + (currentSlide + 1) + ' de ' + presentations.length;
+            slideCounter.innerText = 'Slide ' + String(currentSlide + 1).padStart(3, '0') + ' de ' + String(presentations.length).padStart(3, '0');
+        }
+    }
+
+    function showNotification(message) {
+        const notification = document.getElementById('notification');
+        notification.innerText = message;
+        notification.style.display = 'block';
+        setTimeout(() => notification.style.display = 'none', 3000);
+    }
+
+    function nextSlide() {
+        if (presentations.length === 0) return;
+        currentSlide = (currentSlide + 1) % presentations.length;
+        updateDisplay(presentations[currentSlide]);
+        if (currentPresentation) {
+            setTimeout(nextSlide, 3000);
+        }
+    }
+
+    function prevSlide() {
+        if (presentations.length === 0) return;
+        currentSlide = (currentSlide - 1 + presentations.length) % presentations.length;
+        updateDisplay(presentations[currentSlide]);
+    }
+
+    function goToSlide() {
+        if (presentations.length === 0) return;
+        const input = prompt('Ir para slide', 1);
+        if (input) {
+            const index = parseInt(input) - 1;
+            if (index >= 0 && index < presentations.length) {
+                currentSlide = index;
+                updateDisplay(presentations[currentSlide]);
+            }
+        }
+    }
+
+    function pausePresentation() {
+        currentPresentation = false;
+        showNotification('Apresentação pausada');
+    }
+
+    function continuePresentation() {
+        currentPresentation = true;
+        showNotification('Apresentação continuada');
+        nextSlide();
+    }
+
+    function goToStart() {
+        currentSlide = 0;
+        updateDisplay(presentations[0]);
+        showNotification('Voltou ao início');
+    }
+
+    function savePresentation() {
+        const data = JSON.stringify(presentations);
+        const blob = new Blob([data], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'apresentacao.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showNotification('Apresentação salva');
+    }
+
+    function loadPresentation() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    presentations = JSON.parse(e.target.result);
+                    currentSlide = 0;
+                    updateDisplay(presentations[0]);
+                    showNotification('Apresentação carregada');
+                };
+                reader.readAsText(file);
+            }
+        };
+        input.click();
+    }
+
+    window.onload = function() {
+        if (window.location.hostname === 'localhost') {
+            const socket = new WebSocket('ws://localhost:8080');
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                switch (data.type) {
+                    case 'SLIDE':
+                        if (currentPresentation) {
+                            presentations.push(data);
+                            updateDisplay(data);
+                            showNotification('Slide recebido');
+                        }
+                        break;
+                    case 'PRESENTATION_START':
+                        presentations = [data.slide];
+                        currentSlide = 0;
+                        currentPresentation = true;
+                        updateDisplay(data.slide);
+                        showNotification('Apresentação iniciada');
+                        setTimeout(nextSlide, 3000);
+                        break;
+                    case 'BIBLE_VERSE':
+                        presentations = [data];
+                        currentSlide = 0;
+                        currentPresentation = true;
+                        updateDisplay(data);
+                        showNotification('Versículo bíblico recebido');
+                        break;
+                }
+            };
+        }
+    };
+</script>
+</body>
+</html>
