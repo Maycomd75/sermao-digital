@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+o<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -476,11 +476,18 @@
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
 
-        if (window.location.hostname === 'localhost') {
-            if (!projectionSocket) {
-                projectionSocket = new WebSocket('ws://sermao-digital.onrender.com:10000');
-                projectionSocket.onopen = () => console.log('Conectado ao servidor');
-            }
+       try {
+    if (!projectionSocket || projectionSocket.readyState !== WebSocket.OPEN) {
+        projectionSocket = new WebSocket('wss://sermao-digital.onrender.com:10000');
+        projectionSocket.onopen = () => {
+            projectionSocket.send(JSON.stringify(data));
+        };
+    } else {
+        projectionSocket.send(JSON.stringify(data));
+    }
+} catch (err) {
+    alert('Erro ao enviar slide para projeção');
+       }
             projectionSocket.send(JSON.stringify({
                 type: 'PRESENTATION_START',
                 slide: slides[index]
