@@ -44,7 +44,7 @@ function broadcast(data) {
 
 app.use(express.static(__dirname));
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 10000;
 server.listen(PORT, function listening() {
     console.log(`Servidor rodando em ws://localhost:${PORT}`);
 });
