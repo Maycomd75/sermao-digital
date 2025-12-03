@@ -451,7 +451,7 @@
 
         if (window.location.hostname === 'localhost') {
             if (!projectionSocket) {
-                projectionSocket = new WebSocket('ws://localhost:10000');
+                projectionSocket = new WebSocket('ws://sermao-digital.onrender.com:10000');
                 projectionSocket.onopen = () => console.log('Conectado ao servidor');
             }
             projectionSocket.send(JSON.stringify(data));
@@ -478,7 +478,7 @@
 
         if (window.location.hostname === 'localhost') {
             if (!projectionSocket) {
-                projectionSocket = new WebSocket('ws://localhost:10000');
+                projectionSocket = new WebSocket('ws://sermao-digital.onrender.com:10000');
                 projectionSocket.onopen = () => console.log('Conectado ao servidor');
             }
             projectionSocket.send(JSON.stringify({
